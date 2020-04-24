@@ -2,6 +2,7 @@ package bank;
 
 
 import java.sql.*;
+import java.util.Arrays;
 
 public class Bank {
 
@@ -9,6 +10,8 @@ public class Bank {
     private static final String DB_URL = "jdbc:postgresql://localhost:5439/postgres";
     private static final String DB_USER = "postgres";
     private static final String DB_PASS = "1234";
+
+    private static final String TABLE_NAME = "accounts";
 
     private Connection c;
 
@@ -67,5 +70,34 @@ public class Bank {
 
     public void blockAccount(String name) {
         // TODO
+    }
+
+    // For testing purpose
+    String getTableDump() {
+        String query = "select * from " + TABLE_NAME;
+        String res = "";
+
+        try (PreparedStatement s = c.prepareStatement(query)) {
+            ResultSet r = s.executeQuery();
+
+            // Getting nb colmun from meta data
+            int nbColumns = r.getMetaData().getColumnCount();
+
+            // while there is a next row
+            while (r.next()){
+                String[] currentRow = new String[nbColumns];
+
+                // For each column in the row
+                for (int i = 1 ; i <= nbColumns ; i++) {
+                    currentRow[i - 1] = r.getString(i);
+                }
+                res += Arrays.toString(currentRow);
+            }
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return res;
     }
 }

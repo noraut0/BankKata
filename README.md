@@ -2,7 +2,7 @@
 
 ## Description
 En tant qu'utilisateur de mon application Bank, je dois pouvoir :
-  - Créer un compte, contenant le nom du client, son solde actuel et son découvert autorisé
+  - Créer un compte, contenant le nom du client, son solde actuel et son découvert autorisé (qui doit être négatif ou nul)
   - Pouvoir bloquer un compte
   - Pouvoir changer le solde du compte (retirer ou ajouter de l'argent) dans la limite du découvert autorisé et seulement si la personne n'est pas interdit banquaire
   - Pouvoir afficher la liste de tous les comptes
@@ -20,7 +20,7 @@ Pour ce TP, il est plus efficace de s'occuper d'abord de la partie objet avant d
   - File > Project Structure > renseigner votre jdk et votre fichier de sortie <VOTRE_WORKING_DIR/out>
   - Run > Edit Configuration > ajouter une Application > Renseigner votre jdk si ce n'est pas déjà fait
   - Pour ajouter JUnit, la façon la plus simple est la suivante : allez dans le fichier bank > BankTest > alt-Enter sur un @Test rouge > add JUnit to classpath
-  - Télécharger et ajouter le jar PostGre driver aux modules dans Project Structure (https://jdbc.postgresql.org/download/postgresql-42.2.9.jar)
+  - Télécharger et ajouter le jar PostGre driver aux modules dans File > Project Structure > Module (https://jdbc.postgresql.org/download/postgresql-42.2.9.jar)
   - Lancer le script suivant : ```docker run --rm -P -p 127.0.0.1:5439:5432 -e POSTGRES_PASSWORD="1234" --name pg postgres:10.8```
   - Implémenter les classes...
   - Jouer les tests dans bank > BankTest
