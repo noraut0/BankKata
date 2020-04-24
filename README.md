@@ -6,11 +6,13 @@ En tant qu'utilisateur de mon application Bank, je dois pouvoir :
   - Pouvoir bloquer un compte
   - Pouvoir changer le solde du compte (retirer ou ajouter de l'argent) dans la limite du découvert autorisé et seulement si la personne n'est pas interdit banquaire
   - Pouvoir afficher la liste de tous les comptes
+  - Gérer les entrées illégales dans la ligne de commande (pas de crash...)
   
 Les informations enregistrées dans l'application doivent être persistantes et stockées dans une base de données PostGreSQL.
 
 ## Guidelines
 Pour ce TP, il est plus efficace de s'occuper d'abord de la partie objet avant de d'occuper de la partie persistance des données.
+Le contrôle des entrées n'est pas testé mais sera évalué, vous pouvez ajouter vos propres tests si vous le voulez.
 
 ## Mise en place
   - Installer Docker sur vos machines

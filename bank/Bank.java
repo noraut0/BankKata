@@ -17,6 +17,8 @@ public class Bank {
 
     public Bank() {
         initDb();
+
+        // TODO
     }
 
     private void initDb() {
