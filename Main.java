@@ -37,11 +37,29 @@ public class Main extends Application {
 
             // Processing user input
             switch (userInput) {
+                case "0":
+                    flushScreen();
+                    System.out.println( b.printAllAccounts() );
+                    break;
+                case "1":
+                    flushScreen();
+                    Application.interfaceCreate( b );
+                    break;
+                case "2":
+                    flushScreen();
+                    Application.interfaceUpdateBalance( b );
+                    break;
+                case "3":
+                    flushScreen();
+                    Application.interfaceBlockAccount( b );
+                    break;
                 case "q":
                     endOfSession = true;
                     b.closeDb();
                     break;
-                // TODO
+                default:
+                    System.out.println("error: input not valid");
+
             }
         }
 

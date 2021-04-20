@@ -49,6 +49,25 @@ public class BankTest {
     }
 
     @Test
+    public void nameAlreadyUsed() {
+
+        b.createNewAccount("TESTY", 100, -100);
+        b.createNewAccount("TESTY", 200, -300);
+
+
+        // Check Account created
+        assertEquals(
+                "TESTY | 100 | -100 | false\n",
+                b.printAllAccounts());
+
+
+        // Check in DB
+        assertEquals(
+                "[TESTY, 100, -100, f]",
+                b.getTableDump());
+    }
+
+    @Test
     public void illegalCreateAccount() {
 
         b.createNewAccount("TESTY", 100, 100);

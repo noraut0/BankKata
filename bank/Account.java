@@ -3,13 +3,24 @@ package bank;
 class Account {
 
     // Attributes
-    // TODO
+    private String name;
+    private int balance;
+    private int threshold;
+
 
     // Constructor
-    // TODO
+    public Account( String name , int balance , int threshold){
+        this.name = name;
+        this.balance = balance;
+        this.threshold = threshold;
 
-    // Methods
-    // TODO
+    }
+
+    public void updateBalance(int balance){
+
+        this.balance += balance;
+
+    }
 
     public String toString() {
         // TODO
