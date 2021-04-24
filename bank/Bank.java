@@ -14,11 +14,26 @@ public class Bank {
     private static final String TABLE_NAME = "accounts";
     private Connection c;
 
-    private ArrayList Accounts;
+    private ArrayList<Account> accounts = new ArrayList<Account>();
+
 
     public Bank() {
         initDb();
-        Accounts = new ArrayList<>();
+
+        // we select accounts which exist in database
+        String query = "select name,balance,threshold,banned from " + TABLE_NAME;
+
+        try (PreparedStatement s = c.prepareStatement(query)) {
+            ResultSet r = s.executeQuery();
+
+            // we add every account in a array list of account's objet
+            while (r.next()){
+                accounts.add( new Account( r.getString("name") , r.getInt("balance") ,r.getInt("threshold") , r.getBoolean("banned") ) );
+            }
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
 
     }
 
@@ -28,6 +43,7 @@ public class Bank {
             c = DriverManager.getConnection(DB_URL, DB_USER, DB_PASS);
             System.out.println("Opened database successfully");
 
+            // we create the account table if it not exist
             try (Statement s = c.createStatement()) {
                 s.executeUpdate(
                         "CREATE TABLE " + TABLE_NAME +" (" +
@@ -35,7 +51,7 @@ public class Bank {
                                 "name VARCHAR(64),"+
                                 "balance INT,"+
                                 "threshold INT,"+
-                                "banned VARCHAR(1) DEFAULT 'f'"+
+                                "banned BOOLEAN DEFAULT false"+
                                 ");");
 
             } catch (Exception e) {
@@ -51,6 +67,8 @@ public class Bank {
     }
 
     public void closeDb() {
+
+        // close database
         try {
             c.close();
         } catch (SQLException e) {
@@ -60,7 +78,7 @@ public class Bank {
 
     public void dropAllTables() {
 
-
+        // we delete the database account for the test
         try (Statement s = c.createStatement()) {
             s.executeUpdate(
                        "DROP TABLE " + TABLE_NAME + ";"
@@ -76,32 +94,28 @@ public class Bank {
 
     private Boolean checkName( String name ){
 
-        Boolean nameExist = false;
+        // we check if the name doesn't exist in the array list
+        for( int i = 0 ; i < accounts.size()  ; i++){
 
-        String sql = "SELECT name FROM " + TABLE_NAME + " WHERE name=?";
+            if( accounts.get(i).getName().equals(name) ){
+                return true;
 
-        try (PreparedStatement preparedStatement = c.prepareStatement(sql)) {
-
-            preparedStatement.setString(1, name);
-            preparedStatement.executeQuery();
-            ResultSet result = preparedStatement.executeQuery();
-
-            nameExist = result.next();
-
-        } catch (Exception e) {
-
-            System.out.println(e.toString());
+            }
         }
-
-        return nameExist;
+        return false;
 
     }
 
 
     public void createNewAccount(String name, int balance, int threshold) {
 
+        // we check value of threshold and name
         if( threshold <= 0 && !checkName(name) ) {
 
+            // we add account to the array list of account
+            accounts.add( new Account(name , balance , threshold , false) );
+
+            // and to  mysql database
             String sql = "INSERT INTO " + TABLE_NAME + "(name, balance, threshold, banned) VALUES (?,?,?,?)";
 
             try (PreparedStatement preparedStatement = c.prepareStatement(sql)) {
@@ -109,63 +123,72 @@ public class Bank {
                 preparedStatement.setString(1, name);
                 preparedStatement.setInt(2, balance);
                 preparedStatement.setInt(3, threshold);
-                preparedStatement.setString(4, "f");
+                preparedStatement.setBoolean(4, false);
                 preparedStatement.execute();
 
             } catch (Exception e) {
 
                 System.out.println(e.toString());
             }
-
-        }
-
+        }else System.out.println("this name is already used or threshold is not under 0");
     }
 
     public String printAllAccounts() {
 
-        String result = getTableDump();
+        String stringAccounts = "";
 
-        result = result.replace(']' , '\n');
-        result = result.replace("[" , "");
-        result = result.replace("," , " |");
-        result = result.replace("f" , "false");
-        result = result.replace("t" , "true");
+        // we display every account
+        for( int i = 0 ; i < accounts.size() ; i++ ){
 
-        return result;
-    }
-
-    private Boolean checkBannedAndBalance(String name , int balanceModifier){
-
-        String valueBanned = "";
-        int valueBalance = 0, valueThreshold = 0;
-
-        String sql = "SELECT balance,threshold,banned FROM " + TABLE_NAME + " WHERE name=?";
-
-        try (PreparedStatement preparedStatement = c.prepareStatement(sql)) {
-
-            preparedStatement.setString(1, name);
-            preparedStatement.executeQuery();
-            ResultSet result = preparedStatement.executeQuery();
-
-            while (result.next()){
-                valueBanned = result.getString("banned");
-                valueBalance = result.getInt("balance");
-                valueThreshold = result.getInt("threshold");
-            }
-
-        } catch (Exception e) {
-
-            System.out.println(e.toString());
+            stringAccounts += accounts.get(i).toString();
         }
 
-        return valueBanned.equals("f") && ( valueBalance + balanceModifier > valueThreshold);
+        return stringAccounts;
     }
+
+    private Boolean checkBanned(String name ){
+
+        // we check if the account is not blocked
+
+        for( int i = 0 ; i < accounts.size()  ; i++){
+
+            if( accounts.get(i).getName().equals(name) && accounts.get(i).getBanned() ) {
+                System.out.println("the account is currently blocked !");
+                return false;
+            }
+
+        }
+        return true;
+    }
+
+    private Boolean checkBalance(String name , int modifier ){
+
+        // check if the balance doesn't go under threshold after the update
+        for( int i = 0 ; i < accounts.size()  ; i++){
+
+            if( accounts.get(i).getName().equals(name) && accounts.get(i).getBalance() + modifier < accounts.get(i).getThreshold() ){
+                System.out.println("balance will be under threshold !");
+                return false;
+
+            }
+        }
+        return true;
+    }
+
+
 
     public void changeBalanceByName(String name, int balanceModifier) {
 
+        if( checkBanned( name ) && checkBalance(name , balanceModifier) && checkName( name )) {
 
+            // update the balance account
+            for( int i = 0 ; i < accounts.size()  ; i++){
 
-        if( checkBannedAndBalance(name , balanceModifier) && checkName( name )) {
+                if( accounts.get(i).getName().equals(name) )  accounts.get(i).updateBalance( balanceModifier );
+
+            }
+
+            // then update balance in database
             String sql = "UPDATE " + TABLE_NAME + " SET balance = balance + ? WHERE name=?";
 
             try (PreparedStatement preparedStatement = c.prepareStatement(sql)) {
@@ -177,18 +200,29 @@ public class Bank {
             } catch (Exception e) {
                 System.out.println(e.toString());
             }
-        }else System.out.println("change not possible: account blocked, balance under threshold or name doesn't exist");
+        }
 
     }
 
     public void blockAccount(String name) {
 
-        String sql = "UPDATE " + TABLE_NAME + " SET banned='t' WHERE name=?";
-
+        // if the name exist block the account
         if(checkName( name )) {
+
+            for( int i = 0 ; i < accounts.size()  ; i++){
+
+                if( accounts.get(i).getName().equals(name) ){
+                    accounts.get(i).setBanned();
+
+                }
+            }
+
+
+            String sql = "UPDATE " + TABLE_NAME + " SET banned=? WHERE name=?";
             try (PreparedStatement preparedStatement = c.prepareStatement(sql)) {
 
-                preparedStatement.setString(1, name);
+                preparedStatement.setBoolean(1, true);
+                preparedStatement.setString(2, name);
 
                 preparedStatement.executeUpdate();
 
